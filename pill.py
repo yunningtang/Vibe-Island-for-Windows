@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import os
+import shutil
 import subprocess
 import sys
 import tkinter as tk
@@ -122,12 +124,7 @@ class Pill:
 
     def _bind_clicks(self) -> None:
         def on_click(_event=None):
-            if self.args.cwd:
-                uri = "vscode://file/" + self.args.cwd.replace("\\", "/")
-                try:
-                    subprocess.Popen(["cmd", "/c", "start", "", uri], shell=False)
-                except Exception:
-                    pass
+            self._open_cwd(self.args.cwd)
             self._fade_out(0)
 
         def walk(w):
@@ -164,6 +161,54 @@ class Pill:
             self.win.after(FRAME_MS, self._fade_out, elapsed + FRAME_MS)
         else:
             self.root.after(0, self.root.destroy)
+
+    @staticmethod
+    def _open_cwd(cwd: str) -> None:
+        """Best-effort open `cwd` in VS Code. Logs each attempt to ~/.vibe/tray.log."""
+        import pathlib, time as _t
+        log_path = pathlib.Path(os.path.expanduser("~")) / ".vibe" / "tray.log"
+
+        def log(msg):
+            try:
+                with log_path.open("a", encoding="utf-8") as f:
+                    f.write(f"[{_t.strftime('%H:%M:%S')}] pill-click: {msg}\n")
+            except Exception:
+                pass
+
+        log(f"clicked, cwd={cwd!r}")
+        if not cwd:
+            log("empty cwd, giving up")
+            return
+
+        # 1. code.cmd — explicitly prefer .cmd on Windows (shutil.which("code") may
+        #    return an extension-less shell script that Windows can't exec).
+        code_cmd = shutil.which("code.cmd")
+        if code_cmd:
+            try:
+                subprocess.Popen(
+                    [code_cmd, "--reuse-window", cwd],
+                    shell=True,  # .cmd files need a shell
+                    creationflags=0x08000000,
+                )
+                log(f"launched via code.cmd at {code_cmd}")
+                return
+            except Exception as e:
+                log(f"code.cmd failed: {e!r}")
+
+        # 2. vscode:// URI via ShellExecute.
+        try:
+            os.startfile("vscode://file/" + cwd.replace("\\", "/"))
+            log("launched via vscode:// URI")
+            return
+        except Exception as e:
+            log(f"vscode:// failed: {e!r}")
+
+        # 3. Open the folder in Explorer as last resort.
+        try:
+            os.startfile(cwd)
+            log("fell back to Explorer")
+        except Exception as e:
+            log(f"Explorer fallback failed: {e!r}")
 
     def run(self) -> None:
         self.root.mainloop()
