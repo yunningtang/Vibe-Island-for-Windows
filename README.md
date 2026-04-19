@@ -1,4 +1,4 @@
-# Vibe Island for Windows
+# vibepill
 
 A tiny floating-pill notifier for [Claude Code](https://docs.claude.com/en/docs/claude-code) sessions on Windows.
 Know when your agent finishes, when it needs a permission, and which of your parallel sessions is doing what — without tabbing back into the terminal.
@@ -22,8 +22,8 @@ Know when your agent finishes, when it needs a permission, and which of your par
 
 ```powershell
 # 1. Clone
-git clone https://github.com/yunningtang/Vibe-Island-for-Windows.git D:\Code\vibeisland
-cd D:\Code\vibeisland
+git clone https://github.com/yunningtang/vibepill.git D:\Code\vibepill
+cd D:\Code\vibepill
 
 # 2. Install the one Python dependency (pystray for the tray icon)
 python -m pip install pystray pillow
@@ -31,7 +31,7 @@ python -m pip install pystray pillow
 # 3. Point Claude Code's hooks at hook.py.
 #    Edit ~/.claude/settings.json and add (or merge) the hooks block below.
 #    Replace D:\Anaconda3\python.exe with your actual Python path and
-#    D:\Code\vibeisland with wherever you cloned this.
+#    D:\Code\vibepill with wherever you cloned this.
 ```
 
 Add to `~/.claude/settings.json`:
@@ -40,16 +40,16 @@ Add to `~/.claude/settings.json`:
 {
   "hooks": {
     "SessionStart": [
-      { "hooks": [{ "type": "command", "command": "D:\\Anaconda3\\python.exe D:\\Code\\vibeisland\\hook.py SessionStart", "timeout": 5 }] }
+      { "hooks": [{ "type": "command", "command": "D:\\Anaconda3\\python.exe D:\\Code\\vibepill\\hook.py SessionStart", "timeout": 5 }] }
     ],
     "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "D:\\Anaconda3\\python.exe D:\\Code\\vibeisland\\hook.py UserPromptSubmit", "timeout": 5 }] }
+      { "hooks": [{ "type": "command", "command": "D:\\Anaconda3\\python.exe D:\\Code\\vibepill\\hook.py UserPromptSubmit", "timeout": 5 }] }
     ],
     "Notification": [
-      { "hooks": [{ "type": "command", "command": "D:\\Anaconda3\\python.exe D:\\Code\\vibeisland\\hook.py Notification", "timeout": 5 }] }
+      { "hooks": [{ "type": "command", "command": "D:\\Anaconda3\\python.exe D:\\Code\\vibepill\\hook.py Notification", "timeout": 5 }] }
     ],
     "Stop": [
-      { "hooks": [{ "type": "command", "command": "D:\\Anaconda3\\python.exe D:\\Code\\vibeisland\\hook.py Stop", "timeout": 5 }] }
+      { "hooks": [{ "type": "command", "command": "D:\\Anaconda3\\python.exe D:\\Code\\vibepill\\hook.py Stop", "timeout": 5 }] }
     ]
   }
 }
@@ -58,7 +58,7 @@ Add to `~/.claude/settings.json`:
 Then start the tray once manually:
 
 ```powershell
-Start-Process -FilePath "D:\Anaconda3\pythonw.exe" -ArgumentList "D:\Code\vibeisland\tray.py" -WindowStyle Hidden
+Start-Process -FilePath "D:\Anaconda3\pythonw.exe" -ArgumentList "D:\Code\vibepill\tray.py" -WindowStyle Hidden
 ```
 
 ### Auto-start on login
@@ -70,8 +70,8 @@ $lnk = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\VibeTray.lnk"
 $wsh = New-Object -ComObject WScript.Shell
 $s = $wsh.CreateShortcut($lnk)
 $s.TargetPath = "D:\Anaconda3\pythonw.exe"
-$s.Arguments = '"D:\Code\vibeisland\tray.py"'
-$s.WorkingDirectory = "D:\Code\vibeisland"
+$s.Arguments = '"D:\Code\vibepill\tray.py"'
+$s.WorkingDirectory = "D:\Code\vibepill"
 $s.WindowStyle = 7
 $s.Save()
 ```
@@ -103,7 +103,7 @@ Claude Code ──hook event──► hook.py ──append──► ~/.vibe/sess
 ## Uninstall
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File D:\Code\vibeisland\uninstall.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File D:\Code\vibepill\uninstall.ps1
 ```
 
 The installer makes a `settings.json.bak-<timestamp>` before editing — uninstall restores the most recent backup automatically.
